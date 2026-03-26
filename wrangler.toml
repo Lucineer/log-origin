@@ -15,12 +15,10 @@ database_id = "1d51f13d-fb6a-4eee-8f98-09a1222edea3"
 binding = "KV"
 id = "68b75858683b4c24905e3d5faa285d87"
 
-[[r2_buckets]]
-binding = "R2"
-bucket_name = "log-origin-files"
-
 [vars]
 ENVIRONMENT = "production"
 
 # Secrets (set via wrangler secret put):
 # AUTH_HASH, DEEPSEEK_API_KEY, JWT_SECRET
+#
+# R2 bucket "log-origin-files" needs to be created via Dashboard first

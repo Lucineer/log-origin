@@ -7,7 +7,7 @@ import { sign } from '../../src/crypto/jwt.js';
 
 const auth = new Hono<{ Bindings: Env; Variables: Variables }>();
 
-const ITERATIONS = 600_000;
+const ITERATIONS = 100_000;
 const KEY_LEN = 32;
 const SALT_LEN = 16;
 
@@ -15,7 +15,7 @@ async function deriveKey(passphrase: string, salt: Uint8Array): Promise<Uint8Arr
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(passphrase), 'PBKDF2', false, ['deriveBits']);
   const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: ITERATIONS, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt: salt as BufferSource, iterations: ITERATIONS, hash: 'SHA-256' },
     keyMaterial,
     KEY_LEN * 8,
   );
@@ -46,7 +46,7 @@ auth.post('/register', async (c) => {
   }
 
   // Check if any user exists (single-tenant for now)
-  const existing = await c.env.DB.prepare('SELECT user_id FROM user_preferences WHERE key = ? LIMIT 1').bind('_auth_salt').first();
+  const existing = await c.env.KV.get('auth:salt');
   if (existing) {
     return c.json({ error: { type: 'conflict', code: 'already_registered', message: 'Already registered. Use /login.' } }, 409);
   }

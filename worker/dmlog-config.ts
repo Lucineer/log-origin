@@ -2,7 +2,7 @@
  * DMlog.ai custom configuration loader.
  * Loads personality, rules, theme, and templates from KV.
  */
-import type { Env } from '../../src/types.js';
+import type { Env } from '../src/types.js';
 
 export interface DMLogConfig {
   personality: string;
@@ -16,15 +16,18 @@ export interface DMLogConfig {
  */
 export async function loadDMLogConfig(env: Env): Promise<DMLogConfig> {
   try {
-    const [personality, rulesRaw, theme] = await Promise.all([
-      env.KV.get('config:personality') || '',
-      env.KV.get('config:rules') || '[]',
-      env.KV.get('config:theme') || '',
+    const results = await Promise.all([
+      env.KV.get('config:personality'),
+      env.KV.get('config:rules'),
+      env.KV.get('config:theme'),
     ]);
+    const personality = results[0] ?? '';
+    const rulesRaw = results[1] ?? '[]';
+    const theme = results[2] ?? '';
 
     let rules: any[] = [];
     try {
-      rules = JSON.parse(rulesRaw);
+      rules = JSON.parse(rulesRaw as string);
     } catch (e) {
       console.error('Failed to parse rules JSON:', e);
     }
@@ -38,8 +41,10 @@ export async function loadDMLogConfig(env: Env): Promise<DMLogConfig> {
     const templates: Record<string, string> = {};
     const templateResults = await Promise.all(templateKeys.map(k => env.KV.get(k)));
     for (let i = 0; i < templateKeys.length; i++) {
-      const key = templateKeys[i].replace('template:', '');
-      if (templateResults[i]) templates[key] = templateResults[i];
+      const val = templateResults[i];
+      if (val) {
+        templates[templateKeys[i].replace('template:', '')] = val;
+      }
     }
 
     return { personality, rules, theme, templates };

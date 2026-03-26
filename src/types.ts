@@ -5,6 +5,8 @@ export interface Env {
   KV: KVNamespace;
   R2: R2Bucket;
   ENVIRONMENT: string;
+  THEME?: string;
+  DOMAIN?: string;
   JWT_SECRET: string;
   DEEPSEEK_API_KEY: string;
 }

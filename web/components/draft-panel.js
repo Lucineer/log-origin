@@ -1,5 +1,5 @@
 import { html, useState } from '../preact-shim.js';
-import { MessageContent } from './chat.js';
+import { MessageContent } from './message-content.js';
 
 export function DraftPanel({ drafts, onPick, onClose }) {
   const [selected, setSelected] = useState(null);

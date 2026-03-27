@@ -61,6 +61,8 @@ export function Chat() {
       const decoder = new TextDecoder();
       let full = '';
       let model = '';
+      let interactionId = '';
+      let routeAction = '';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -76,12 +78,13 @@ export function Chat() {
             const delta = parsed.choices?.[0]?.delta;
             if (delta?.content) full += delta.content;
             if (parsed.model) model = parsed.model;
+            if (parsed.id) interactionId = parsed.id.replace('chatcmpl-', '');
             setStreamingContent(full);
           } catch {}
         }
       }
 
-      setMessages(prev => [...prev, { role: 'assistant', content: full, model, ts: Date.now() }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: full, model, interactionId, ts: Date.now() }]);
     } catch (err) {
       addToast(err.message, 'error');
       setMessages(prev => [...prev, { role: 'system', content: `Error: ${err.message}`, ts: Date.now() }]);
@@ -132,7 +135,7 @@ export function Chat() {
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let full = '', model = '', startTime = Date.now();
+      let full = '', model = '', startTime = Date.now(), interactionId = '';
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -145,10 +148,11 @@ export function Chat() {
             const parsed = JSON.parse(data);
             if (parsed.choices?.[0]?.delta?.content) full += parsed.choices[0].delta.content;
             if (parsed.model) model = parsed.model;
+            if (parsed.id) interactionId = parsed.id.replace('chatcmpl-', '');
           } catch {}
         }
       }
-      setDrafts([{ provider: model || 'default', content: full, latency: Date.now() - startTime }]);
+      setDrafts([{ provider: model || 'default', content: full, latency: Date.now() - startTime, interactionId }]);
     } catch (err) {
       addToast(err.message, 'error');
     } finally {

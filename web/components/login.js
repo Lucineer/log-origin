@@ -26,8 +26,7 @@ export function Login() {
     try {
       const res = await fetch('/v1/auth/guest', { method: 'POST' });
       if (!res.ok) throw new Error(`Guest access unavailable (${res.status})`);
-      const data = await res.json();
-      storeToken(data);
+      storeToken(await res.json());
     } catch (err) { setError(err.message); }
     finally { setIsLoading(false); }
   };
@@ -72,7 +71,8 @@ export function Login() {
     return html`
       <div class="login">
         <div class="login-card landing">
-          <h1>🔐 LOG</h1>
+          <div style="font-size:2rem;margin-bottom:.5rem">🔐</div>
+          <h1>LOG</h1>
           <p class="tagline">Your AI remembers everything.</p>
           <div class="features">
             <div class="feature">🧠 Every conversation builds your memory</div>
@@ -81,13 +81,13 @@ export function Login() {
             <div class="feature">📊 Feedback improves future answers</div>
           </div>
           ${error && html`<div class="error">${error}</div>`}
-          <button class="primary guest-btn" onclick=${handleGuest} disabled=${isLoading}>
+          <button class="guest-btn" onclick=${handleGuest} disabled=${isLoading}>
             ${isLoading ? html`<span class="spinner"></span>` : '⚡ Try it free — no signup'}
           </button>
           <div class="auth-divider"><span>or</span></div>
           <div class="auth-links">
-            <button class="link-btn" onclick=${() => setMode('login')}>Sign in with passphrase</button>
-            <button class="link-btn" onclick=${() => setMode('register')}>Create new account</button>
+            <button class="link-btn" onclick=${() => setMode('login')}>Sign in</button>
+            <button class="link-btn" onclick=${() => setMode('register')}>Create account</button>
           </div>
           <p class="fine-print">5 free guest messages, then create an account. $0/month forever.</p>
         </div>

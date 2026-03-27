@@ -1,7 +1,7 @@
 import { html, useState, useRef, useEffect } from '../preact-shim.js';
 import { Message, MessageContent } from './message.js';
 import { DraftPanel } from './draft-panel.js';
-import { authState, theme, sidebarOpen, currentSessionId, sessionUpdated, loadSessionSignal, addToast } from '../app.js';
+import { authState, theme, sidebarOpen, currentSessionId, sessionUpdated, loadSessionSignal, settingsOpen, addToast } from '../app.js';
 
 export function Chat() {
   const [messages, setMessages] = useState([]);
@@ -208,22 +208,28 @@ export function Chat() {
         <button onclick=${() => sidebarOpen.value = !sidebarOpen.value}>☰</button>
         <div class="chat-title">${activeSessionId ? '💬 Chat' : '🔐 LOG — Your AI Remembers'}</div>
         <div class="actions">
-          <button onclick=${() => setDraftMode(!draftMode)} title="Compare responses">${draftMode ? '✕' : '🎯'}</button>
-          <button onclick=${handleNewChat} title="New chat">+ New</button>
-          <button onclick=${() => theme.value = theme.value === 'dark' ? 'light' : 'dark'}>${theme.value === 'dark' ? '☀️' : '🌙'}</button>
-          <button onclick=${() => settingsOpen.value = true}>⚙</button>
+          <button onclick=${() => setDraftMode(!draftMode)} title="Compare responses" class="icon-btn">${draftMode ? '✕' : '🎯'}</button>
+          <button onclick=${handleNewChat} title="New adventure" class="icon-btn">+ New</button>
+          <button onclick=${() => theme.value = theme.value === 'dark' ? 'light' : 'dark'} class="icon-btn">${theme.value === 'dark' ? '☀️' : '🌙'}</button>
+          <button onclick=${() => settingsOpen.value = true} class="icon-btn">⚙</button>
         </div>
       </div>
       ${draftMode && drafts.length > 0 ? html`
         <${DraftPanel} drafts=${drafts} onPick=${pickDraft} onClose=${() => setDraftMode(false)} />
       ` : html`
         <div class="message-list" ref=${listRef}>
-          ${loadingSession ? html`<div class="session-loading">Loading session...</div>` :
+          ${loadingSession ? html`<div class="empty-state"><span class="spinner" style="font-size:1.5rem;width:24px;height:24px"></span><div class="empty-hint" style="margin-top:.75rem">Loading campaign...</div></div>` :
             messages.length === 0 ? html`
               <div class="empty-state">
                 <div class="empty-icon">🔐</div>
                 <div class="empty-title">Your AI remembers everything.</div>
                 <div class="empty-hint">Every conversation builds your memory. Type a message to start.</div>
+                <div class="empty-prompts">
+                  <button class="prompt-chip" onclick=${() => setInput('What can you do?')}>🤖 What can you do?</button>
+                  <button class="prompt-chip" onclick=${() => setInput('Help me brainstorm ideas')}>💡 Brainstorm ideas</button>
+                  <button class="prompt-chip" onclick=${() => setInput('Summarize what we discussed')}>📝 Summarize history</button>
+                  <button class="prompt-chip" onclick=${() => setInput('Compare two approaches to a problem')}>⚖️ Compare approaches</button>
+                </div>
               </div>
             ` :
             messages.map((m, i) => html`<${Message} key=${i} message=${m} />`)
@@ -273,5 +279,11 @@ function renderInlineMarkdown(text) {
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/^### (.+)$/gm, '<h4 style="font-size:.85rem;font-weight:600;margin:.5rem 0 .25rem;color:var(--ac)">$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3 style="font-size:.9rem;font-weight:600;margin:.5rem 0 .25rem;color:var(--ac)">$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2 style="font-size:1rem;font-weight:700;margin:.5rem 0 .25rem">$1</h2>')
+    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+    .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
     .replace(/\n/g, '<br>');
 }

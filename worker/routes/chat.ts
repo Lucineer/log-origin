@@ -8,6 +8,7 @@ import { dehydrate, rehydrate } from '../../src/pii/engine.js';
 import { classify } from '../../src/routing/router.js';
 import { chatStream, chat, ProviderError } from '../../src/providers/openai-compatible.js';
 import { sign, verify } from '../../src/crypto/jwt.js';
+import { isGuest, checkGuestLimit } from '../../src/middleware/guest.js';
 import { getSystemPrompt } from '../dmlog-config.js';
 
 const chatApp = new Hono<{ Bindings: Env; Variables: Variables }>();
@@ -93,6 +94,17 @@ chatApp.post('/completions', async (c) => {
   }
 
   const isStream = body.stream === true;
+
+  // Enforce guest message limit
+  if (isGuest(userId) && c.env.KV) {
+    const ip = userId.replace('guest:', '');
+    const { allowed, state } = await checkGuestLimit(c.env.KV, ip);
+    if (!allowed) {
+      return c.json({
+        error: { type: 'rate_limit', code: 'guest_limit', message: `Guest limit reached (${state.maxMessages} messages). Create a free account to continue.` }
+      }, 429);
+    }
+  }
 
   if (isStream) {
     // Streaming response

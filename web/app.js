@@ -1,4 +1,5 @@
-import { render, signal, effect } from 'preact';
+import { render, signal } from 'preact';
+import { useEffect } from 'preact/hooks';
 import { html } from 'htm/preact';
 import { Login } from './components/login.js';
 import { Chat } from './components/chat.js';
@@ -16,7 +17,7 @@ export const toasts = signal([]);
 export const overlay = signal(null);
 
 // Theme sync
-effect(() => {
+useEffect(() => {
   document.documentElement.setAttribute('data-theme', theme.value);
   localStorage.setItem('lo-theme', theme.value);
   // Load DMlog custom theme if available
@@ -31,7 +32,7 @@ effect(() => {
       document.body.classList.add('dm-theme');
     }
   }
-});
+}, []);
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {

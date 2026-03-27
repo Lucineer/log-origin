@@ -17,9 +17,7 @@ export function Login() {
       userId: data.userId || data.user_id,
       isGuest: data.guest || false,
     };
-    if (data.guest) {
-      addToast(`${data.messagesRemaining} free messages remaining`);
-    }
+    if (data.guest) addToast(`${data.messagesRemaining} free messages remaining`);
   };
 
   const handleGuest = async () => {
@@ -30,11 +28,8 @@ export function Login() {
       if (!res.ok) throw new Error(`Guest access unavailable (${res.status})`);
       const data = await res.json();
       storeToken(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+    } catch (err) { setError(err.message); }
+    finally { setIsLoading(false); }
   };
 
   const handleLogin = async (e) => {
@@ -48,25 +43,15 @@ export function Login() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ passphrase }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error?.message || `Login failed (${res.status})`);
-      }
-      const data = await res.json();
-      storeToken(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error?.message || `Login failed (${res.status})`); }
+      storeToken(await res.json());
+    } catch (err) { setError(err.message); }
+    finally { setIsLoading(false); }
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (!passphrase.trim() || passphrase.length < 8) {
-      setError('Passphrase must be at least 8 characters');
-      return;
-    }
+    if (passphrase.length < 8) { setError('Passphrase must be at least 8 characters'); return; }
     setIsLoading(true);
     setError(null);
     try {
@@ -75,18 +60,12 @@ export function Login() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ passphrase }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error?.message || `Registration failed (${res.status})`);
-      }
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error?.message || `Registration failed (${res.status})`); }
       const data = await res.json();
       storeToken(data);
       addToast('Account created! Your passphrase unlocks your AI memory.');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+    } catch (err) { setError(err.message); }
+    finally { setIsLoading(false); }
   };
 
   if (mode === 'landing') {
@@ -110,7 +89,7 @@ export function Login() {
             <button class="link-btn" onclick=${() => setMode('login')}>Sign in with passphrase</button>
             <button class="link-btn" onclick=${() => setMode('register')}>Create new account</button>
           </div>
-          <p class="fine-print">Free tier: 5 guest messages, then create an account. $0/month forever.</p>
+          <p class="fine-print">5 free guest messages, then create an account. $0/month forever.</p>
         </div>
       </div>
     `;
@@ -126,8 +105,7 @@ export function Login() {
           ${error && html`<div class="error">${error}</div>`}
           <form onSubmit=${handleLogin}>
             <input type="password" placeholder="Passphrase" value=${passphrase}
-              onInput=${e => setPassphrase(e.target.value)} disabled=${isLoading}
-              autofocus autocomplete="current-password" />
+              onInput=${e => setPassphrase(e.target.value)} disabled=${isLoading} autofocus autocomplete="current-password" />
             <button type="submit" class="primary" disabled=${isLoading || !passphrase.trim()} style="width:100%">
               ${isLoading ? html`<span class="spinner"></span>` : 'Unlock'}
             </button>
@@ -146,8 +124,7 @@ export function Login() {
         ${error && html`<div class="error">${error}</div>`}
         <form onSubmit=${handleRegister}>
           <input type="password" placeholder="Passphrase (8+ characters)" value=${passphrase}
-            onInput=${e => setPassphrase(e.target.value)} disabled=${isLoading}
-            autofocus autocomplete="new-password" minlength="8" />
+            onInput=${e => setPassphrase(e.target.value)} disabled=${isLoading} autofocus autocomplete="new-password" minlength="8" />
           <button type="submit" class="primary" disabled=${isLoading || passphrase.length < 8} style="width:100%">
             ${isLoading ? html`<span class="spinner"></span>` : 'Create Account'}
           </button>

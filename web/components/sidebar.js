@@ -1,5 +1,4 @@
-import { html } from 'htm/preact';
-import { useState, useEffect } from 'preact/hooks';
+import { html, useState, useEffect } from '../preact-shim.js';
 import { sidebarOpen, sessionUpdated, loadSessionSignal, addToast } from '../app.js';
 
 export function Sidebar() {
@@ -28,11 +27,12 @@ export function Sidebar() {
     }
   };
 
-  // Fetch sessions on mount and when updated
   useEffect(() => { fetchSessions(); }, [sessionUpdated.value]);
 
   const handleNewSession = () => {
-    currentSessionId.value = crypto.randomUUID();
+    setActiveId(null);
+    loadSessionSignal.value = null;
+    setMessages(null);
     addToast('New conversation started');
   };
 
@@ -45,7 +45,7 @@ export function Sidebar() {
       });
       if (res.ok) {
         setSessionList(prev => prev.filter(s => s.id !== id));
-        if (currentSessionId.value === id) currentSessionId.value = null;
+        if (activeId === id) { setActiveId(null); loadSessionSignal.value = null; }
         addToast('Session deleted');
       }
     } catch {}
@@ -68,15 +68,12 @@ export function Sidebar() {
 
   const formatTime = (ts) => {
     if (!ts) return '';
-    const d = new Date(ts);
-    const now = new Date();
-    const diffMs = now - d;
-    const diffMins = Math.floor(diffMs / 60000);
+    const diffMins = Math.floor((Date.now() - new Date(ts)) / 60000);
     if (diffMins < 1) return 'just now';
     if (diffMins < 60) return `${diffMins}m ago`;
     const diffHrs = Math.floor(diffMins / 60);
     if (diffHrs < 24) return `${diffHrs}h ago`;
-    return d.toLocaleDateString();
+    return new Date(ts).toLocaleDateString();
   };
 
   const truncate = (str, len = 40) => str && str.length > len ? str.slice(0, len) + '...' : str || '';

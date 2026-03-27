@@ -1,9 +1,8 @@
-import { html } from 'htm/preact';
-import { useState } from 'preact/hooks';
+import { html, useState } from '../preact-shim.js';
 import { authState, addToast } from '../app.js';
 
 export function Login() {
-  const [mode, setMode] = useState('landing'); // landing | login | register
+  const [mode, setMode] = useState('landing');
   const [passphrase, setPassphrase] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -90,7 +89,6 @@ export function Login() {
     }
   };
 
-  // Landing page
   if (mode === 'landing') {
     return html`
       <div class="login">
@@ -118,7 +116,6 @@ export function Login() {
     `;
   }
 
-  // Login form
   if (mode === 'login') {
     return html`
       <div class="login">
@@ -140,13 +137,12 @@ export function Login() {
     `;
   }
 
-  // Register form
   return html`
     <div class="login">
       <div class="login-card">
         <button class="back-btn" onclick=${() => { setMode('landing'); setError(null); }}>← Back</button>
         <h1>🔐 Create Account</h1>
-        <p class="subtitle">Choose a passphrase. This is your key — write it down. We can't reset it.</p>
+        <p class="subtitle">Choose a passphrase. This is your key — write it down.</p>
         ${error && html`<div class="error">${error}</div>`}
         <form onSubmit=${handleRegister}>
           <input type="password" placeholder="Passphrase (8+ characters)" value=${passphrase}
@@ -156,7 +152,7 @@ export function Login() {
             ${isLoading ? html`<span class="spinner"></span>` : 'Create Account'}
           </button>
         </form>
-        <p class="fine-print">Your passphrase is hashed with PBKDF2 (100K iterations) and never stored in plain text.</p>
+        <p class="fine-print">Passphrase hashed with PBKDF2 (100K iterations). We can't reset it.</p>
       </div>
     </div>
   `;

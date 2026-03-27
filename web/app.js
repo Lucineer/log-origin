@@ -1,7 +1,4 @@
-import { render } from 'preact';
-import { signal } from '@preact/signals';
-import { useEffect } from 'preact/hooks';
-import { html } from 'htm/preact';
+import { render, signal, useEffect, html } from './preact-shim.js';
 import { Login } from './components/login.js';
 import { Chat } from './components/chat.js';
 import { Sidebar } from './components/sidebar.js';
@@ -14,8 +11,8 @@ export const sidebarOpen = signal(true);
 export const settingsOpen = signal(false);
 export const sessions = signal([]);
 export const currentSessionId = signal(null);
-export const sessionUpdated = signal(0); // increment to trigger sidebar refetch
-export const loadSessionSignal = signal(null); // set to session ID to trigger load
+export const sessionUpdated = signal(0);
+export const loadSessionSignal = signal(null);
 export const toasts = signal([]);
 export const overlay = signal(null);
 
@@ -23,8 +20,7 @@ export const overlay = signal(null);
 useEffect(() => {
   document.documentElement.setAttribute('data-theme', theme.value);
   localStorage.setItem('lo-theme', theme.value);
-  // Load DMlog custom theme if available
-  if (document.body.classList.contains('dm-theme') || window.location.hostname.includes('dmlog')) {
+  if (window.location.hostname.includes('dmlog')) {
     const existing = document.getElementById('dm-theme-css');
     if (!existing) {
       const link = document.createElement('link');

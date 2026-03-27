@@ -1,5 +1,4 @@
-import { html } from 'htm/preact';
-import { useState } from 'preact/hooks';
+import { html, useState } from '../preact-shim.js';
 import { MessageContent } from './chat.js';
 import { authState, addToast } from '../app.js';
 
@@ -14,7 +13,7 @@ function sendFeedback(interactionId, sentiment) {
     },
     body: JSON.stringify({ feedback: sentiment }),
   }).then(() => {
-    addToast(sentiment === 'up' ? '👍 Thanks for the feedback!' : '👎 Noted, we\'ll do better.');
+    addToast(sentiment === 'up' ? '👍 Thanks!' : '👎 Noted.');
   }).catch(() => {});
 }
 
@@ -33,9 +32,6 @@ export function Message({ message }) {
     sendFeedback(interactionId, sentiment);
   };
 
-  // Show route badge from _meta if available
-  const routeBadge = message.route || message.routeAction;
-
   return html`
     <div class="message ${role}">
       <div class="message-bubble">
@@ -44,7 +40,6 @@ export function Message({ message }) {
       <div class="message-meta">
         ${time}
         ${model ? html`<span class="route-badge">${model.split('/').pop()}</span>` : null}
-        ${routeBadge ? html`<span class="route-badge route-${routeBadge}">${routeBadge}</span>` : null}
         ${role === 'assistant' ? html`
           <span class="feedback-btns">
             <button onclick=${() => handleFeedback('up')} class=${feedbackSent === 'up' ? 'active' : ''} title="Good">👍</button>

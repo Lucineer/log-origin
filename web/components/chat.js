@@ -1,6 +1,5 @@
-import { html } from 'htm/preact';
-import { useState, useRef, useEffect } from 'preact/hooks';
-import { Message } from './message.js';
+import { html, useState, useRef, useEffect } from '../preact-shim.js';
+import { Message, MessageContent } from './message.js';
 import { DraftPanel } from './draft-panel.js';
 import { authState, theme, sidebarOpen, currentSessionId, sessionUpdated, loadSessionSignal, addToast } from '../app.js';
 
@@ -18,7 +17,7 @@ export function Chat() {
 
   const getToken = () => sessionStorage.getItem('lo-token') || authState.value.token;
 
-  // Watch for session changes from sidebar
+  // Watch for session load requests from sidebar
   useEffect(() => {
     const id = loadSessionSignal.value;
     if (id && id !== activeSessionId) {
@@ -28,7 +27,6 @@ export function Chat() {
     }
   }, [loadSessionSignal.value]);
 
-  // Load session messages from server
   const loadSession = async (sessionId) => {
     setLoadingSession(true);
     setMessages([]);
@@ -53,12 +51,10 @@ export function Chat() {
     }
   };
 
-  // Auto-scroll
   useEffect(() => {
     if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
   }, [messages, streamingContent]);
 
-  // Resize textarea
   const handleInput = (e) => {
     setInput(e.target.value);
     const ta = e.target;
@@ -66,7 +62,6 @@ export function Chat() {
     ta.style.height = Math.min(ta.scrollHeight, 160) + 'px';
   };
 
-  // Ensure a session exists for this conversation
   const ensureSession = async () => {
     if (activeSessionId) return activeSessionId;
     const token = getToken();
@@ -97,22 +92,18 @@ export function Chat() {
       },
       body: JSON.stringify(body),
     });
-
     if (!res.ok) {
       const err = await res.text();
       throw new Error(err || `HTTP ${res.status}`);
     }
-
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let full = '', model = '', interactionId = '', routeAction = '';
-
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n');
-      for (const line of lines) {
+      for (const line of chunk.split('\n')) {
         if (!line.startsWith('data: ')) continue;
         const data = line.slice(6).trim();
         if (data === '[DONE]') continue;
@@ -127,7 +118,6 @@ export function Chat() {
         } catch {}
       }
     }
-
     return { content: full, model, interactionId, routeAction };
   };
 
@@ -139,22 +129,16 @@ export function Chat() {
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
     setIsStreaming(true);
     setStreamingContent('');
-
     try {
       const sid = await ensureSession();
       const chatMessages = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
       const body = { messages: chatMessages, stream: true };
       if (sid) body.session_id = sid;
-
       const result = await streamResponse('/v1/chat/completions', body);
       sessionUpdated.value++;
       setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: result.content,
-        model: result.model,
-        interactionId: result.interactionId,
-        routeAction: result.routeAction,
-        ts: Date.now(),
+        role: 'assistant', content: result.content, model: result.model,
+        interactionId: result.interactionId, routeAction: result.routeAction, ts: Date.now(),
       }]);
     } catch (err) {
       addToast(err.message, 'error');
@@ -166,11 +150,6 @@ export function Chat() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.ctrlKey && e.key === 'Enter') {
-      e.preventDefault();
-      sendMessage(input);
-    }
-    // Also send on plain Enter (Shift+Enter for newline)
     if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       sendMessage(input);
@@ -194,20 +173,16 @@ export function Chat() {
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsStreaming(true);
-
     try {
       const sid = await ensureSession();
       const chatMessages = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
       const body = { messages: chatMessages, stream: true };
       if (sid) body.session_id = sid;
-
       const startTime = Date.now();
       const result = await streamResponse('/v1/chat/completions', body);
       setDrafts([{
-        provider: result.model || 'default',
-        content: result.content,
-        latency: Date.now() - startTime,
-        interactionId: result.interactionId,
+        provider: result.model || 'default', content: result.content,
+        latency: Date.now() - startTime, interactionId: result.interactionId,
       }]);
     } catch (err) {
       addToast(err.message, 'error');
@@ -220,11 +195,8 @@ export function Chat() {
     const draft = drafts[idx];
     if (!draft) return;
     setMessages(prev => [...prev, {
-      role: 'assistant',
-      content: draft.content,
-      model: draft.provider,
-      interactionId: draft.interactionId,
-      ts: Date.now(),
+      role: 'assistant', content: draft.content, model: draft.provider,
+      interactionId: draft.interactionId, ts: Date.now(),
     }]);
     setDraftMode(false);
     setDrafts([]);
@@ -236,13 +208,12 @@ export function Chat() {
         <button onclick=${() => sidebarOpen.value = !sidebarOpen.value}>☰</button>
         <div class="chat-title">${activeSessionId ? '💬 Chat' : '🔐 LOG — Your AI Remembers'}</div>
         <div class="actions">
-          <button onclick=${() => setDraftMode(!draftMode)} title="Compare responses (Ctrl+D)">${draftMode ? '✕' : '🎯'}</button>
-          <button onclick=${handleNewChat} title="New chat (Ctrl+N)">+ New</button>
+          <button onclick=${() => setDraftMode(!draftMode)} title="Compare responses">${draftMode ? '✕' : '🎯'}</button>
+          <button onclick=${handleNewChat} title="New chat">+ New</button>
           <button onclick=${() => theme.value = theme.value === 'dark' ? 'light' : 'dark'}>${theme.value === 'dark' ? '☀️' : '🌙'}</button>
-          <button onclick=${() => { import('./settings.js'); settingsOpen.value = true; }}>⚙</button>
+          <button onclick=${() => settingsOpen.value = true}>⚙</button>
         </div>
       </div>
-
       ${draftMode && drafts.length > 0 ? html`
         <${DraftPanel} drafts=${drafts} onPick=${pickDraft} onClose=${() => setDraftMode(false)} />
       ` : html`
@@ -267,19 +238,13 @@ export function Chat() {
           ` : null}
         </div>
       `}
-
       <div class="input-area">
         <div class="input-row">
-          <textarea
-            ref=${textareaRef}
-            placeholder="Type a message… (Enter to send, Shift+Enter for newline)"
-            value=${input}
-            onInput=${handleInput}
-            onKeyDown=${handleKeyDown}
-            disabled=${isStreaming}
-            rows="1"
-          />
-          <button class="primary" onclick=${() => draftMode ? sendDraft(input) : sendMessage(input)} disabled=${isStreaming || !input.trim()}>
+          <textarea ref=${textareaRef} placeholder="Type a message… (Enter to send)"
+            value=${input} onInput=${handleInput} onKeyDown=${handleKeyDown}
+            disabled=${isStreaming} rows="1" />
+          <button class="primary" onclick=${() => draftMode ? sendDraft(input) : sendMessage(input)}
+            disabled=${isStreaming || !input.trim()}>
             ${isStreaming ? html`<span class="spinner"></span>` : '➤'}
           </button>
         </div>
@@ -288,15 +253,14 @@ export function Chat() {
   `;
 }
 
-// Basic markdown renderer
 export function MessageContent({ content }) {
   if (!content) return html``;
   const parts = content.split(/(```[\s\S]*?```)/g);
   return html`<div>${parts.map(part => {
     if (part.startsWith('```') && part.endsWith('```')) {
       const lines = part.slice(3, -3);
-      const firstNewline = lines.indexOf('\n');
-      const code = firstNewline > 0 ? lines.slice(firstNewline + 1) : lines;
+      const idx = lines.indexOf('\n');
+      const code = idx > 0 ? lines.slice(idx + 1) : lines;
       return html`<pre><code>${code}</code></pre>`;
     }
     return html`<span dangerouslySetInnerHTML=${{ __html: renderInlineMarkdown(part) }}></span>`;

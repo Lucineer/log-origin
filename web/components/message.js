@@ -1,5 +1,19 @@
 import { html } from 'htm/preact';
 import { MessageContent } from './chat.js';
+import { authState } from '../app.js';
+
+function sendFeedback(message, sentiment) {
+  if (!message.id) return;
+  const token = sessionStorage.getItem('lo-token') || authState.value.token;
+  fetch(`/v1/chat/interactions/${message.id}/feedback`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ sentiment }),
+  }).catch(() => {});
+}
 
 export function Message({ message }) {
   const { role, content, model, ts } = message;
@@ -19,8 +33,8 @@ export function Message({ message }) {
         ${model ? html`<span class="route-badge">${model.split('/').pop()}</span>` : null}
         ${role === 'assistant' ? html`
           <span class="feedback-btns">
-            <button onclick=${() => {}} title="Good">👍</button>
-            <button onclick=${() => {}} title="Bad">👎</button>
+            <button onclick=${() => sendFeedback(message, 'positive')} title="Good">👍</button>
+            <button onclick=${() => sendFeedback(message, 'negative')} title="Bad">👎</button>
           </span>
         ` : null}
       </div>

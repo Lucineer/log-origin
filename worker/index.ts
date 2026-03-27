@@ -19,6 +19,7 @@ import metricsRoutes from './routes/metrics.js';
 import configRoutes from './routes/config.js';
 import dmlogRoutes from './routes/dmlog.js';
 import { getThemeCSS } from './dmlog-config.js';
+import { rateLimitMiddleware } from './middleware/rate-limit.js';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -29,6 +30,9 @@ app.use('*', cors({
   allowHeaders: ['Content-Type', 'Authorization', 'X-LogOrigin-Mode'],
   exposeHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
 }));
+
+// Rate limiting
+app.use('*', rateLimitMiddleware);
 
 // Public routes
 app.route('/v1/auth', authRoutes);

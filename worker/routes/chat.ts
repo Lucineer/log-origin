@@ -110,13 +110,14 @@ chatApp.post('/completions', async (c) => {
             temperature: body.temperature ?? 0.7,
           })) {
             if (chunk.content) {
+              const rehydrated = await rehydrate(chunk.content, c.env.DB, userId);
               fullContent += chunk.content;
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({
                 id: `chatcmpl-${interactionId}`,
                 object: 'chat.completion.chunk',
                 created: Math.floor(Date.now() / 1000),
                 model: chunk.model ?? model,
-                choices: [{ index: 0, delta: { content: chunk.content }, finish_reason: chunk.done ? 'stop' : null }],
+                choices: [{ index: 0, delta: { content: rehydrated }, finish_reason: chunk.done ? 'stop' : null }],
               })}\n\n`));
             }
           }

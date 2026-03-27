@@ -125,3 +125,9 @@ select{font:inherit;background:var(--bg1);color:var(--t1);border:1px solid var(-
 .route-badge.route-summarize{color:#f0c040}
 .route-badge.route-draft{color:#c084fc}
 .feedback-btns button.active{opacity:1;background:var(--bg3)}
+/* Empty state */
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--t2)}
+.empty-icon{font-size:3rem;margin-bottom:1rem}
+.empty-title{font-size:1.2rem;font-weight:600;margin-bottom:.5rem;color:var(--t1)}
+.empty-hint{font-size:var(--fs);color:var(--t3)}
+.chat-title{font-size:var(--fs);color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;margin:0 .5rem}

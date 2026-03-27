@@ -1,12 +1,13 @@
 import { html } from 'htm/preact';
 import { useState, useEffect } from 'preact/hooks';
-import { sidebarOpen, currentSessionId, addToast } from '../app.js';
+import { sidebarOpen, sessionUpdated, loadSessionSignal, addToast } from '../app.js';
 
 export function Sidebar() {
   const [sessionList, setSessionList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [recap, setRecap] = useState(null);
   const [recapId, setRecapId] = useState(null);
+  const [activeId, setActiveId] = useState(null);
 
   const getToken = () => sessionStorage.getItem('lo-token');
 
@@ -27,8 +28,8 @@ export function Sidebar() {
     }
   };
 
-  // Fetch sessions on mount
-  useEffect(() => { fetchSessions(); }, []);
+  // Fetch sessions on mount and when updated
+  useEffect(() => { fetchSessions(); }, [sessionUpdated.value]);
 
   const handleNewSession = () => {
     currentSessionId.value = crypto.randomUUID();
@@ -90,8 +91,8 @@ export function Sidebar() {
         ${loading ? html`<div class="session-loading">Loading...</div>` :
           sessionList.length === 0 ? html`<div class="session-empty">No sessions yet. Start chatting!</div>` :
           sessionList.map(s => html`
-            <div class="session-item ${currentSessionId.value === s.id ? 'active' : ''}"
-                 onclick=${() => currentSessionId.value = s.id}>
+            <div class="session-item ${activeId === s.id ? 'active' : ''}"
+                 onclick=${() => { setActiveId(s.id); loadSessionSignal.value = s.id; }}>
               <div class="session-title">${truncate(s.summary || s.last_message || s.first_message)}</div>
               <div class="session-meta">
                 ${s.message_count || 0} msgs · ${formatTime(s.lastMessageAt)}

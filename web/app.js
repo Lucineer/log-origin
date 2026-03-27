@@ -13,6 +13,8 @@ export const sidebarOpen = signal(true);
 export const settingsOpen = signal(false);
 export const sessions = signal([]);
 export const currentSessionId = signal(null);
+export const sessionUpdated = signal(0); // increment to trigger sidebar refetch
+export const loadSessionSignal = signal(null); // set to session ID to trigger load
 export const toasts = signal([]);
 export const overlay = signal(null);
 

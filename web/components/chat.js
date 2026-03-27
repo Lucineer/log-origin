@@ -245,6 +245,16 @@ export function Chat() {
             ` :
             messages.map((m, i) => html`<${Message} key=${i} message=${m} />`)
           }
+          ${isStreaming && !streamingContent ? html`
+            <div class="message assistant">
+              <div class="message-bubble">
+                <div class="typing-indicator">
+                  <div class="typing-dots"><span></span><span></span><span></span></div>
+                  <span>Thinking...</span>
+                </div>
+              </div>
+            </div>
+          ` : null}
           ${isStreaming && streamingContent ? html`
             <div class="message assistant">
               <div class="message-bubble">

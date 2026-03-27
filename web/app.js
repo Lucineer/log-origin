@@ -1,4 +1,5 @@
-import { render, signal } from 'preact';
+import { render } from 'preact';
+import { signal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { html } from 'htm/preact';
 import { Login } from './components/login.js';

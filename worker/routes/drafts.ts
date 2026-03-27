@@ -3,36 +3,41 @@
  * Sends a message to multiple providers in parallel and returns results.
  */
 import { Hono } from 'hono';
-import type { Env } from '../../src/types.js';
+import type { Env, Variables } from '../../src/types.js';
 
-const drafts = new Hono<{ Bindings: Env }>();
+const drafts = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 drafts.post('/compare', async (c) => {
-  const body = await c.req.json<{ messages: Array<{ role: string; content: string }>; models?: string[] }>();
-  const { messages, models } = body;
+  const body = await c.req.json<{ messages: Array<{ role: string; content: string }>; models?: string[]; max_tokens?: number }>();
+  const { messages, models, max_tokens } = body;
 
   if (!messages?.length) {
     return c.json({ error: 'messages array is required' }, 400);
   }
 
-  // Default models to compare
-  const defaultModels = ['openai/gpt-4o-mini', 'anthropic/claude-3-haiku-20240307'];
+  // Default model (uses DeepSeek since we have that key)
+  const defaultModels = ['deepseek-chat'];
   const targetModels = models?.length ? models : defaultModels;
 
   // Call all providers in parallel
   const results = await Promise.allSettled(
     targetModels.map(async (model) => {
       const start = Date.now();
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Use DeepSeek for all requests (expand to multi-provider later)
+      const baseUrl = 'https://api.deepseek.com';
+      const apiKey = c.env.DEEPSEEK_API_KEY;
+      const modelName = model.includes('/') ? model.split('/').pop() : model;
+
+      const res = await fetch(`${baseUrl}/v1/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${c.env.OPENAI_API_KEY}`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: model.includes('/') ? model.split('/').pop() : model,
+          model: modelName,
           messages,
-          max_tokens: 1024,
+          max_tokens: max_tokens ?? 1024,
         }),
       });
 
@@ -41,7 +46,7 @@ drafts.post('/compare', async (c) => {
         throw new Error(`Provider error: ${res.status} ${err}`);
       }
 
-      const data = await res.json();
+      const data: any = await res.json();
       const content = data.choices?.[0]?.message?.content || '';
       const latency = Date.now() - start;
 
@@ -67,10 +72,10 @@ drafts.post('/compare', async (c) => {
   try {
     const userId = c.get('userId');
     for (const draft of successful) {
-      await c.env.DB?.prepare(
+      await c.env.DB.prepare(
         'INSERT INTO interactions (user_id, role, content, model, tokens_used, metadata) VALUES (?, ?, ?, ?, ?, ?)'
       ).bind(
-        userId || 'anonymous',
+        userId,
         'assistant',
         draft.content,
         draft.model,

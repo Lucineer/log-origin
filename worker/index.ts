@@ -20,12 +20,20 @@ import configRoutes from './routes/config.js';
 import dmlogRoutes from './routes/dmlog.js';
 import { getThemeCSS } from './dmlog-config.js';
 import { rateLimitMiddleware } from './middleware/rate-limit.js';
+import { requestLogger } from '../src/middleware/request-logger.js';
+
+const ALLOWED_ORIGINS = [
+  /^https?:\/\/.*\.magnus-digennaro\.workers\.dev$/,
+  /^https?:\/\/.*\.log\.ai$/,
+  /^http?:\/\/localhost(:\d+)?$/,
+];
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
+app.use('*', requestLogger);
 app.use('*', logger());
 app.use('*', cors({
-  origin: '*',
+  origin: (origin) => (ALLOWED_ORIGINS.some(r => r.test(origin)) ? origin : undefined),
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'X-LogOrigin-Mode'],
   exposeHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],

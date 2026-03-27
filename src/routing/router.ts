@@ -55,13 +55,22 @@ const STATIC_RULES: StaticRule[] = [
     confidence: 0.9,
   },
 
-  // 6. Complex Analysis / Explanation
+  // 6. Complex Analysis / Explanation — but not simple "how" in greetings
   {
     name: 'complex_analysis',
     pattern:
-      /\b(analyze|compare|evaluate|assess|critique|synthesize|explain|what\b|why\b|how\b)\b/i,
+      /\b(analyze|compare|evaluate|assess|critique|synthesize|explain)\b/i,
     action: 'escalation',
     confidence: 0.7,
+  },
+
+  // 7. Question words (what/why/how) — but not standalone "what?" or "how?" in social context
+  {
+    name: 'question_words',
+    pattern:
+      /\b(what|why|how)\b.*\b(is|are|do|does|did|can|could|should|would|will|might)\b/i,
+    action: 'escalation',
+    confidence: 0.65,
   },
 
   // 7. Creative Writing

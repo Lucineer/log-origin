@@ -1,3 +1,4 @@
+// Remove window.onerror (handled in index.html)
 import { render, signal, useEffect, html } from './preact-shim.js';
 import { Login } from './components/login.js';
 import { Chat } from './components/chat.js';
@@ -50,7 +51,7 @@ function addToast(msg, type = 'info') {
 }
 export { addToast };
 
-function App() {
+export default function App() {
   return html`
     <div class="app">
       ${authState.value.isLoggedIn ? html`
@@ -70,4 +71,4 @@ function App() {
   `;
 }
 
-render(html`<${App} />`, document.getElementById('app'));
+

@@ -2,7 +2,9 @@ import { html, useState, useRef, useEffect } from '../preact-shim.js';
 import { Message } from './message.js';
 import { MessageContent } from './message-content.js';
 import { DraftPanel } from './draft-panel.js';
-import { authState, theme, sidebarOpen, currentSessionId, sessionUpdated, loadSessionSignal, settingsOpen, addToast } from '../app.js';
+import { DiceRoller, rollResults } from './dice-roller.js';
+import { CharacterStats } from './character-stats.js';
+import { authState, theme, sidebarOpen, currentSessionId, sessionUpdated, loadSessionSignal, settingsOpen, analyticsOpen, addToast, getToken } from '../app.js';
 
 export function Chat() {
   const [messages, setMessages] = useState([]);
@@ -13,10 +15,10 @@ export function Chat() {
   const [streamingContent, setStreamingContent] = useState('');
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [loadingSession, setLoadingSession] = useState(false);
+  const [showDice, setShowDice] = useState(false);
   const listRef = useRef(null);
   const textareaRef = useRef(null);
 
-  const getToken = () => sessionStorage.getItem('lo-token') || authState.value.token;
 
   // Watch for session load requests from sidebar
   useEffect(() => {
@@ -137,6 +139,11 @@ export function Chat() {
       const chatMessages = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
       const body = { messages: chatMessages, stream: true };
       if (sid) body.session_id = sid;
+      // Inject character context from quickstart (send once, then clear)
+      try {
+        const charStr = sessionStorage.getItem('lo-character');
+        if (charStr) { body.character = JSON.parse(charStr); sessionStorage.removeItem('lo-character'); }
+      } catch {}
       const result = await streamResponse('/v1/chat/completions', body);
       sessionUpdated.value++;
       setMessages(prev => [...prev, {
@@ -146,6 +153,7 @@ export function Chat() {
     } catch (err) {
       const msg = err.message || '';
       if (msg.includes('Guest limit') || msg.includes('guest_limit')) {
+        // Guest limit reached — prompt to sign up
         setMessages(prev => [...prev, {
           role: 'system', content: 'GUEST_LIMIT', ts: Date.now(),
         }]);
@@ -176,6 +184,17 @@ export function Chat() {
     setInput('');
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('lo-token');
+    localStorage.removeItem('lo-userid');
+    sessionStorage.removeItem('lo-token');
+    sessionStorage.removeItem('lo-guest');
+    sessionStorage.removeItem('lo-character');
+    sessionStorage.removeItem('lo-session');
+    authState.value = { isLoggedIn: false, token: null, userId: null };
+    addToast('Signed out');
+  };
+
   const sendDraft = async (text) => {
     if (!text.trim()) return;
     setDraftMode(true);
@@ -183,22 +202,27 @@ export function Chat() {
     const userMsg = { role: 'user', content: text, ts: Date.now() };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
-    setIsStreaming(true);
+
+    const token = getToken();
     try {
       const sid = await ensureSession();
       const chatMessages = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
-      const body = { messages: chatMessages, stream: true };
-      if (sid) body.session_id = sid;
-      const startTime = Date.now();
-      const result = await streamResponse('/v1/chat/completions', body);
-      setDrafts([{
-        provider: result.model || 'default', content: result.content,
-        latency: Date.now() - startTime, interactionId: result.interactionId,
-      }]);
+      const res = await fetch('/v1/drafts/compare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ messages: chatMessages, session_id: sid, max_tokens: 500 }),
+      });
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        let errMsg = `HTTP ${res.status}`;
+        try { errMsg = JSON.parse(errText).error?.message || errMsg; } catch {}
+        throw new Error(errMsg);
+      }
+      const data = await res.json();
+      setDrafts(data.drafts || []);
     } catch (err) {
       addToast(err.message, 'error');
-    } finally {
-      setIsStreaming(false);
+      setDraftMode(false);
     }
   };
 
@@ -206,9 +230,16 @@ export function Chat() {
     const draft = drafts[idx];
     if (!draft) return;
     setMessages(prev => [...prev, {
-      role: 'assistant', content: draft.content, model: draft.provider,
-      interactionId: draft.interactionId, ts: Date.now(),
+      role: 'assistant', content: draft.content, model: draft.model,
+      interactionId: draft.id, routeAction: draft.profile, ts: Date.now(),
     }]);
+    // Record winner for routing optimization
+    const token = getToken();
+    fetch(`/v1/drafts/winner/${draft.id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ profile: draft.profile }),
+    }).catch(() => {});
     setDraftMode(false);
     setDrafts([]);
   };
@@ -217,14 +248,18 @@ export function Chat() {
     <div class="chat-area">
       <div class="chat-header">
         <button onclick=${() => sidebarOpen.value = !sidebarOpen.value}>☰</button>
-        <div class="chat-title">${activeSessionId ? '💬 Chat' : '🔐 LOG — Your AI Remembers'}</div>
+        <div class="chat-title">${activeSessionId ? '📋 Chat' : '📋 LOG.ai'}</div>
         <div class="actions">
+          <button onclick=${() => setShowDice(!showDice)} title="Dice roller" class="icon-btn">🎲</button>
           <button onclick=${() => setDraftMode(!draftMode)} title="Compare responses" class="icon-btn">${draftMode ? '✕' : '🎯'}</button>
+          <button onclick=${() => analyticsOpen.value = true} title="Analytics" class="icon-btn">📊</button>
           <button onclick=${handleNewChat} title="New adventure" class="icon-btn">+ New</button>
           <button onclick=${() => theme.value = theme.value === 'dark' ? 'light' : 'dark'} class="icon-btn">${theme.value === 'dark' ? '☀️' : '🌙'}</button>
           <button onclick=${() => settingsOpen.value = true} class="icon-btn">⚙</button>
+          <button onclick=${handleLogout} title="Sign out" class="icon-btn">🚪</button>
         </div>
       </div>
+      <${CharacterStats} />
       ${draftMode && drafts.length > 0 ? html`
         <${DraftPanel} drafts=${drafts} onPick=${pickDraft} onClose=${() => setDraftMode(false)} />
       ` : html`
@@ -232,14 +267,14 @@ export function Chat() {
           ${loadingSession ? html`<div class="empty-state"><span class="spinner" style="font-size:1.5rem;width:24px;height:24px"></span><div class="empty-hint" style="margin-top:.75rem">Loading campaign...</div></div>` :
             messages.length === 0 ? html`
               <div class="empty-state">
-                <div class="empty-icon">🔐</div>
-                <div class="empty-title">Your AI remembers everything.</div>
-                <div class="empty-hint">Every conversation builds your memory. Type a message to start.</div>
+                <div class="empty-icon">🏰</div>
+                <div class="empty-title">Your adventure awaits.</div>
+                <div class="empty-hint">Describe what you want to do, or ask the DM to set the scene.</div>
                 <div class="empty-prompts">
-                  <button class="prompt-chip" onclick=${() => setInput('What can you do?')}>🤖 What can you do?</button>
-                  <button class="prompt-chip" onclick=${() => setInput('Help me brainstorm ideas')}>💡 Brainstorm ideas</button>
-                  <button class="prompt-chip" onclick=${() => setInput('Summarize what we discussed')}>📝 Summarize history</button>
-                  <button class="prompt-chip" onclick=${() => setInput('Compare two approaches to a problem')}>⚖️ Compare approaches</button>
+                  <button class="prompt-chip" onclick=${() => setInput('I walk into the nearest tavern')}>🚪 Walk into a tavern</button>
+                  <button class="prompt-chip" onclick=${() => setInput('I search for treasure in the ancient ruins')}>⛏️ Search for treasure</button>
+                  <button class="prompt-chip" onclick=${() => setInput('A dragon appears on the horizon!')}>🐉 Spot a dragon</button>
+                  <button class="prompt-chip" onclick=${() => setInput('Tell me about the world I am in')}>🗺️ Learn about this world</button>
                 </div>
               </div>
             ` :
@@ -250,7 +285,7 @@ export function Chat() {
               <div class="message-bubble">
                 <div class="typing-indicator">
                   <div class="typing-dots"><span></span><span></span><span></span></div>
-                  <span>Thinking...</span>
+                  <span>DM is narrating...</span>
                 </div>
               </div>
             </div>
@@ -266,6 +301,7 @@ export function Chat() {
         </div>
       `}
       <div class="input-area">
+        ${showDice && html`<div class="dice-roller-popup"><${DiceRoller} /></div>`}
         <div class="input-row">
           <textarea ref=${textareaRef} placeholder="Type a message… (Enter to send)"
             value=${input} onInput=${handleInput} onKeyDown=${handleKeyDown}

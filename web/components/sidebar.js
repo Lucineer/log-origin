@@ -1,5 +1,5 @@
 import { html, useState, useEffect } from '../preact-shim.js';
-import { sidebarOpen, sessionUpdated, loadSessionSignal, addToast } from '../app.js';
+import { sidebarOpen, sessionUpdated, loadSessionSignal, addToast, getToken } from '../app.js';
 
 export function Sidebar() {
   const [sessionList, setSessionList] = useState([]);
@@ -9,7 +9,6 @@ export function Sidebar() {
   const [activeId, setActiveId] = useState(null);
   const [search, setSearch] = useState('');
 
-  const getToken = () => sessionStorage.getItem('lo-token');
 
   const filtered = search.trim()
     ? sessionList.filter(s =>
@@ -117,7 +116,7 @@ export function Sidebar() {
   return html`
     <div class="sidebar ${sidebarOpen.value ? '' : 'collapsed'}">
       <div class="sidebar-header">
-        <h2>📋 History</h2>
+        <h2>📜 Campaign Log</h2>
         <button class="icon-btn" onclick=${() => sidebarOpen.value = false} title="Close sidebar">✕</button>
       </div>
       <div class="sidebar-search">
@@ -132,7 +131,7 @@ export function Sidebar() {
         ` : filtered.length === 0 ? html`
           <div class="session-empty">
             <div class="session-empty-icon">📖</div>
-            <div>No sessions yet</div>
+            <div>No campaigns yet</div>
             <div class="session-empty-hint">Start chatting to begin your adventure</div>
           </div>
         ` : filtered.map(s => html`
@@ -154,7 +153,7 @@ export function Sidebar() {
         }
       </div>
       <div class="sidebar-footer">
-        <button class="primary sidebar-new-btn" onclick=${handleNewSession}>+ New Chat</button>
+        <button class="primary sidebar-new-btn" onclick=${handleNewSession}>⚔️ New Adventure</button>
       </div>
     </div>
   `;

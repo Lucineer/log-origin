@@ -18,6 +18,7 @@ import healthRoutes from './routes/health.js';
 import metricsRoutes from './routes/metrics.js';
 import configRoutes from './routes/config.js';
 import dmlogRoutes from './routes/dmlog.js';
+import analyticsRoutes from './routes/analytics.js';
 import { getThemeCSS } from './dmlog-config.js';
 import { rateLimitMiddleware } from './middleware/rate-limit.js';
 import { requestLogger } from '../src/middleware/request-logger.js';
@@ -57,6 +58,7 @@ protectedApi.route('/preferences', preferenceRoutes);
 protectedApi.route('/metrics', metricsRoutes);
 protectedApi.route('/config', configRoutes);
 protectedApi.route('/dmlog', dmlogRoutes);
+protectedApi.route('/analytics', analyticsRoutes);
 app.route('/v1', protectedApi);
 
 app.get('/', (c) => c.json({ name: c.env.THEME === 'dmlog' ? 'dmlog-ai' : 'log-origin', version: '0.1.0' }));

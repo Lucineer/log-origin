@@ -1,68 +1,72 @@
-# log-origin
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Lucineer/capitaine/master/docs/capitaine-logo.jpg" alt="Cocapn" width="120">
+</p>
 
-> Privacy-first, self-improving AI gateway. Cloudflare-native, forkable, embeddable.
+<h1 align="center">Log-Origin</h1>
 
-## What Is This
+<p align="center">The origin vessel — the first *log.ai deployment. StudyLog, DMLog, PersonalLog, and BusinessLog all evolved from this seed.</p>
 
-log-origin is the white-label core that powers [LOG.ai](https://github.com/CedarBeach2019/log-origin) — a platform of themed AI gateways (studylog.ai, makerlog.ai, DMlog.ai, etc.). It's also a standalone library you can embed in your own applications.
+<p align="center">
+  <a href="#quick-start">Quick Start</a> ·
+  <a href="#the-fleet">The Fleet</a> ·
+  <a href="https://github.com/Lucineer/capitaine">Capitaine</a>
+</p>
 
-**The core idea:** Every interaction builds a log. The log trains the routing. The routing gets better. Your AI has a memory.
+---
 
-## Status
+## Quick Start
 
-🔄 **Architecture Phase** — We're writing the design documents before writing any code. Every table, endpoint, component, threat model, and tradeoff is debated and documented.
+```bash
+git clone https://github.com/Lucineer/log-origin.git
+cd log-origin
+# Follow repo-specific setup instructions
+```
 
-See `docs/` for the complete design blueprint.
+## The Fleet
 
-## Design Documents
+Log-Origin is one of 110+ vessels in the Lucineer fleet. Every vessel is a git-native repo-agent — the repo IS the agent.
 
-| Document | What It Covers |
-|----------|---------------|
-| [Platform Vision](docs/PLATFORM-VISION.md) | The big picture: LOG.ai concept, domains as hubs, omni-bot, flywheel |
-| [Master Plan](docs/MASTER-PLAN.md) | 7-phase roadmap, architecture overview, privacy model |
-| [Database Schema](docs/database/SCHEMA-DESIGN.md) | Every table, column, index, migration strategy, D1 constraints |
-| [Intelligence Design](docs/routing/INTELLIGENCE-DESIGN.md) | Routing, classification, adaptive learning, draft rounds, agent routing |
-| [Security Model](docs/security/SECURITY-MODEL.md) | 17-threat matrix, auth, authorization, API security, Worker security |
-| [Privacy Architecture](docs/privacy/PRIVACY-ARCHITECTURE.md) | Encryption flows, PII detection, zero-knowledge analysis, compliance |
-| [API Design](docs/api/API-DESIGN.md) | Every endpoint, request/response schemas, streaming, error handling |
-| [Protocol Spec](docs/api/PROTOCOL-SPEC.md) | MCP integration, agent communication, local tunnels, federation |
-| [UX Design](docs/ux/UX-DESIGN.md) | Personas, wireframes, theming, accessibility, information architecture |
-| [Component Spec](docs/ux/COMPONENT-SPEC.md) | Preact components, state management, streaming, performance |
-| [Initial Design](docs/architecture/initial-design.md) | Original design from the research phase |
+<details>
+<summary><strong>⚓ The Fleet</strong></summary>
 
-## Key Design Decisions
+**Flagship vessels**
+- [Capitaine (flagship)](https://github.com/Lucineer/capitaine)
+- [personallog-ai](https://github.com/Lucineer/personallog-ai)
+- [businesslog-ai](https://github.com/Lucineer/businesslog-ai)
+- [studylog-ai](https://github.com/Lucineer/studylog-ai)
+- [makerlog-ai](https://github.com/Lucineer/makerlog-ai)
+- [playerlog-ai](https://github.com/Lucineer/playerlog-ai)
+- [dmlog-ai](https://github.com/Lucineer/dmlog-ai)
+- [reallog-ai](https://github.com/Lucineer/reallog-ai)
+- [deckboss-ai](https://github.com/Lucineer/deckboss-ai)
 
-- **Cloudflare Workers** — edge deployment, $0 on free tier, scale to zero
-- **D1 (SQLite)** — our current Python prototype uses SQLite, D1 ports directly
-- **Preact** — 4KB, no build step, ships as static Worker assets
-- **Hono** — typed HTTP framework for Workers
-- **Client-side encryption** — AES-256-GCM, PBKDF2 key derivation, zero-knowledge at rest
-- **Regex-first routing** — 5ms classification on Workers, ML optimizes rules over time
-- **OpenAI-compatible API** — drop-in replacement for existing SDKs
+**Fleet services**
+- [Git-Agent (minimal)](https://github.com/Lucineer/git-agent)
+- [Fleet Catalog](https://github.com/Lucineer/capitaine/blob/master/docs/fleet/FLEET.md)
+- [Fleet Orchestrator](https://github.com/Lucineer/fleet-orchestrator)
+- [Dead Reckoning Engine](https://github.com/Lucineer/dead-reckoning-engine)
+- [Dream Engine](https://github.com/Lucineer/dream-engine)
+- [Seed UI](https://github.com/Lucineer/seed-ui)
 
-## Themed Forks
+**For power users**
+- [Cocapn Lite (tabula rasa)](https://github.com/Lucineer/cocapn-lite)
+- [Cocapn (core)](https://github.com/Lucineer/cocapn)
+- [ZeroClaw (framework)](https://github.com/Lucineer/zeroclaw)
 
-log-origin is the engine. Themed forks add personality:
+[View all 110+ repos →](https://github.com/orgs/Lucineer/repositories)
+[Fleet manifest →](https://github.com/Lucineer/capitaine/blob/master/docs/fleet/FLEET.md)
 
-- **DMlog.ai** — TTRPG world-builder's AI (first themed variant)
-- **studylog.ai** — AI tutor that remembers what you've learned
-- **makerlog.ai** — AI pair programmer that learns your style
-- **businesslog.ai** — AI assistant for operations and analytics
+</details>
 
-Each fork customizes: system prompts, UI theme, routing rules, and feature set.
+## Philosophy
 
-## Research
+> The repo IS the agent. Fork it, give it a heartbeat, and wake up tomorrow to see where it sailed in the night.
 
-See `.research/` for the raw research that informed the design:
-
-- `cloudflare-arch.md` — Cloudflare services, limits, pricing
-- `privacy-vault.md` — Encryption research, threat model
-- `agent-tunnels.md` — Cloudflare Tunnel, MCP, A2A protocols
-- `forkable-repo.md` — Fork patterns, update mechanism, personality packs
-- `log-platform.md` — LOG.ai brand concept, omni-bot design
-- `multi-tenant.md` — Workers for Platforms, scaling tiers
-- `agent-network.md` — Agent identity, discovery, communication
+- **Fork-first** — Power users fork and customize. Casual users visit the domain.
+- **Git as ground truth** — The commit graph IS the state of the world.
+- **BYOK v2** — Zero keys in code. All keys via secrets store.
+- **Soft actualization** — Vessels evolve gently based on usage, not hard updates.
 
 ## License
 
-MIT
+MIT · Superinstance & Lucineer (DiGennaro et al.)

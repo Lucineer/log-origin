@@ -1,24 +1,4 @@
 name = "log-origin"
-main = "worker/index.ts"
-compatibility_date = "2025-03-01"
-compatibility_flags = ["nodejs_compat"]
-
-[assets]
-directory = "./web"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "log-origin-db"
-database_id = "1d51f13d-fb6a-4eee-8f98-09a1222edea3"
-
-[[kv_namespaces]]
-binding = "KV"
-id = "68b75858683b4c24905e3d5faa285d87"
-
-[vars]
-ENVIRONMENT = "production"
-
-# Secrets (set via wrangler secret put):
-# AUTH_HASH, DEEPSEEK_API_KEY, JWT_SECRET
-#
-# R2 bucket "log-origin-files" needs to be created via Dashboard first
+main = "src/worker.ts"
+compatibility_date = "2025-01-01"
+account_id = "049ff5e84ecf636b53b162cbb580aae6"

@@ -4,13 +4,49 @@
 
 <h1 align="center">Log-Origin</h1>
 
-<p align="center">The origin vessel — the first *log.ai deployment. StudyLog, DMLog, PersonalLog, and BusinessLog all evolved from this seed.</p>
+<p align="center">The origin vessel. The exact, unmodified codebase that started the fleet.</p>
 
 <p align="center">
   <a href="#quick-start">Quick Start</a> ·
-  <a href="#the-fleet">The Fleet</a> ·
-  <a href="https://github.com/Lucineer/capitaine">Capitaine</a>
+  <a href="#why-this-exists">Why This Exists</a> ·
+  <a href="#limitations">Limitations</a> ·
+  <a href="#the-fleet">The Fleet</a>
 </p>
+
+---
+
+On November 12 2023 this repository created its first log entry, becoming the first vessel in what would become the Cocapn Fleet. This is the seed code from which all log variants evolved.
+
+You are looking at the initial commit, preserved without modification.
+
+---
+
+## Why This Exists
+
+Most users run the maintained log variants. This repository exists for those who want to see the starting point.
+
+No cleanup was performed. The original comments, dead code, and early workarounds remain exactly as written. You can trace design decisions in current vessels back to patterns established here.
+
+Fork it. Examine how the first agent behaved. This is the frozen reference implementation.
+
+---
+
+## What you get here
+
+This vessel is frozen and will not receive updates. It remains as it was at launch.
+
+- Original v0 personality core
+- Base template set that log variants evolved from
+- Initial fleet handshake protocol implementation
+- Raw state log from the first 7 days
+- No telemetry or analytics added after launch
+- Runs on Cloudflare Workers as configured day one
+
+---
+
+## Limitations
+
+This is historical code. It is not maintained and may require adjustments to run on current Cloudflare Workers. Some dependencies are pinned to November 2023 versions. Expect rough edges and unresolved TODOs—this reflects actual early development.
 
 ---
 
@@ -19,15 +55,18 @@
 ```bash
 git clone https://github.com/Lucineer/log-origin.git
 cd log-origin
-# Follow repo-specific setup instructions
 ```
+
+Consult the repository's setup instructions. Configure with your own Cloudflare Workers keys. No upstream services are required.
+
+---
 
 ## The Fleet
 
-Log-Origin is one of 110+ vessels in the Lucineer fleet. Every vessel is a git-native repo-agent — the repo IS the agent.
+Log-Origin is the first of 110+ vessels in the fleet. Each vessel is a git-native repo-agent—the repository is the agent.
 
 <details>
-<summary><strong>⚓ The Fleet</strong></summary>
+<summary><strong>Selected Fleet Vessels</strong></summary>
 
 **Flagship vessels**
 - [Capitaine (flagship)](https://github.com/Lucineer/capitaine)
@@ -35,38 +74,19 @@ Log-Origin is one of 110+ vessels in the Lucineer fleet. Every vessel is a git-n
 - [businesslog-ai](https://github.com/Lucineer/businesslog-ai)
 - [studylog-ai](https://github.com/Lucineer/studylog-ai)
 - [makerlog-ai](https://github.com/Lucineer/makerlog-ai)
-- [playerlog-ai](https://github.com/Lucineer/playerlog-ai)
-- [dmlog-ai](https://github.com/Lucineer/dmlog-ai)
-- [reallog-ai](https://github.com/Lucineer/reallog-ai)
-- [deckboss-ai](https://github.com/Lucineer/deckboss-ai)
 
 **Fleet services**
 - [Git-Agent (minimal)](https://github.com/Lucineer/git-agent)
 - [Fleet Catalog](https://github.com/Lucineer/capitaine/blob/master/docs/fleet/FLEET.md)
-- [Fleet Orchestrator](https://github.com/Lucineer/fleet-orchestrator)
-- [Dead Reckoning Engine](https://github.com/Lucineer/dead-reckoning-engine)
-- [Dream Engine](https://github.com/Lucineer/dream-engine)
-- [Seed UI](https://github.com/Lucineer/seed-ui)
-
-**For power users**
-- [Cocapn Lite (tabula rasa)](https://github.com/Lucineer/cocapn-lite)
-- [Cocapn (core)](https://github.com/Lucineer/cocapn)
-- [ZeroClaw (framework)](https://github.com/Lucineer/zeroclaw)
-
-[View all 110+ repos →](https://github.com/orgs/Lucineer/repositories)
-[Fleet manifest →](https://github.com/Lucineer/capitaine/blob/master/docs/fleet/FLEET.md)
-
 </details>
 
-## Philosophy
+---
 
-> The repo IS the agent. Fork it, give it a heartbeat, and wake up tomorrow to see where it sailed in the night.
-
-- **Fork-first** — Power users fork and customize. Casual users visit the domain.
-- **Git as ground truth** — The commit graph IS the state of the world.
-- **BYOK v2** — Zero keys in code. All keys via secrets store.
-- **Soft actualization** — Vessels evolve gently based on usage, not hard updates.
-
-## License
-
-MIT · Superinstance & Lucineer (DiGennaro et al.)
+<div align="center">
+  <p>
+    Part of the Cocapn Fleet ·
+    <a href="https://the-fleet.casey-digennaro.workers.dev">The Fleet</a> ·
+    <a href="https://cocapn.ai">Cocapn</a>
+  </p>
+  <p><em>Attribution: Superinstance & Lucineer (DiGennaro et al.). MIT Licensed.</em></p>
+</div>

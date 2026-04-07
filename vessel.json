@@ -1,0 +1,13 @@
+{
+  "name": "log-origin",
+  "type": "cocapn-vessel",
+  "version": "1.0.0",
+  "category": "infrastructure",
+  "capabilities": [
+    "logging",
+    "session-persistence",
+    "pii-dehydration"
+  ],
+  "fleet": "https://the-fleet.casey-digennaro.workers.dev",
+  "cocapn": "https://cocapn.ai"
+}
